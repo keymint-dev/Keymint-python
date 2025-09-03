@@ -31,8 +31,8 @@ class ActivateKeyParams(TypedDict):
 class ActivateKeyResponse(TypedDict):
     code: int
     message: str
-    licensee_name: Optional[str]
-    licensee_email: Optional[str]
+    licenseeName: Optional[str]
+    licenseeEmail: Optional[str]
 
 class DeactivateKeyParams(TypedDict):
     productId: str
@@ -44,20 +44,20 @@ class DeactivateKeyResponse(TypedDict):
     code: int
 
 class DeviceDetails(TypedDict):
-    host_id: str
-    device_tag: Optional[str]
-    ip_address: Optional[str]
-    activation_time: str
+    hostId: str
+    deviceTag: Optional[str]
+    ipAddress: Optional[str]
+    activationTime: str
 
 class LicenseDetails(TypedDict):
     id: str
     key: str
-    product_id: str
-    max_activations: int
+    productId: str
+    maxActivations: int
     activations: int
     devices: List[DeviceDetails]
     activated: bool
-    expiration_date: Optional[str]
+    expirationDate: Optional[str]
 
 class CustomerDetails(TypedDict):
     id: str
@@ -70,8 +70,8 @@ class GetKeyParams(TypedDict):
     licenseKey: str
 
 class GetKeyResponse(TypedDict):
-    code: int
     data: Dict[str, Any]
+    code: int
 
 class BlockKeyParams(TypedDict):
     productId: str
@@ -87,4 +87,77 @@ class UnblockKeyParams(TypedDict):
 
 class UnblockKeyResponse(TypedDict):
     message: str
+    code: int
+
+# Customer Management Types
+
+class CreateCustomerParams(TypedDict):
+    name: str
+    email: str
+
+class CreateCustomerResponse(TypedDict):
+    action: str
+    status: bool
+    message: str
+    data: Dict[str, Any]
+    code: int
+
+class GetAllCustomersResponse(TypedDict):
+    action: str
+    status: bool
+    data: List[Dict[str, Any]]
+    code: int
+
+class GetCustomerByIdParams(TypedDict):
+    customerId: str
+
+class GetCustomerByIdResponse(TypedDict):
+    action: str
+    status: bool
+    data: List[Dict[str, Any]]
+    code: int
+
+class UpdateCustomerParams(TypedDict):
+    name: str
+    email: str
+    customerId: str
+
+class UpdateCustomerResponse(TypedDict):
+    action: str
+    status: bool
+    code: int
+
+class DeleteCustomerParams(TypedDict):
+    customerId: str
+
+class DeleteCustomerResponse(TypedDict):
+    action: str
+    status: bool
+    code: int
+
+class ToggleCustomerStatusParams(TypedDict):
+    customerId: str
+
+class ToggleCustomerStatusResponse(TypedDict):
+    action: str
+    status: bool
+    message: str
+    code: int
+
+class CustomerLicenseKey(TypedDict):
+    id: str
+    key: str
+    productId: str
+    maxActivations: int
+    activations: int
+    activated: bool
+    expirationDate: Optional[str]
+
+class GetCustomerWithKeysParams(TypedDict):
+    customerId: str
+
+class GetCustomerWithKeysResponse(TypedDict):
+    action: str
+    status: bool
+    data: Dict[str, Any]  # Contains customer and licenseKeys
     code: int
