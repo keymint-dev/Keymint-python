@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="keymint",
-    version="1.0.0",
+    version="2.0.0",
     author="KeyMint",
     author_email="admin@keymint.dev",
     description="Official Python SDK for KeyMint license management with comprehensive API coverage.",
