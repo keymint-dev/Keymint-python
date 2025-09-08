@@ -2,9 +2,9 @@ import requests
 from .types import *
 from ._version import __version__
 
-__all__ = ['KeyMintSDK', 'KeyMintApiError', '__version__']
+__all__ = ['KeyMint', 'KeyMintApiError', '__version__']
 
-class KeyMintSDK:
+class KeyMint:
     def __init__(self, access_token: str, base_url: str = "https://api.keymint.dev"):
         if not access_token:
             raise ValueError("Access token is required to initialize the SDK.")
