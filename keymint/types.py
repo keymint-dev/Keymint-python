@@ -102,10 +102,22 @@ class CreateCustomerResponse(TypedDict):
     data: Dict[str, Any]
     code: int
 
+class GetAllCustomersParams(TypedDict):
+    page: Optional[int]
+    limit: Optional[int]
+    email: Optional[str]
+
+class PaginationMeta(TypedDict):
+    total: int
+    page: int
+    limit: int
+    totalPages: int
+
 class GetAllCustomersResponse(TypedDict):
     action: str
     status: bool
     data: List[Dict[str, Any]]
+    meta: Optional[PaginationMeta]
     code: int
 
 class GetCustomerByIdParams(TypedDict):

@@ -111,12 +111,13 @@ class KeyMint:
         """
         return self._handle_request('POST', '/customer', params)
 
-    def get_all_customers(self) -> GetAllCustomersResponse:
+    def get_all_customers(self, params: Optional[GetAllCustomersParams] = None) -> GetAllCustomersResponse:
         """
         Retrieves all customers associated with the authenticated user's account.
-        :returns: List of all customers.
+        :param params: Optional parameters for pagination and filtering (page, limit, email).
+        :returns: List of all customers with pagination metadata.
         """
-        return self._handle_request('GET', '/customer')
+        return self._handle_request('GET', '/customer', query_params=params)
 
     def get_customer_by_id(self, params: GetCustomerByIdParams) -> GetCustomerByIdResponse:
         """
