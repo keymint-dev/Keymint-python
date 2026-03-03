@@ -9,6 +9,8 @@ class CreateKeyParams(TypedDict):
     maxActivations: Optional[str]
     expiryDate: Optional[str]
     customerId: Optional[str]
+    versionId: Optional[str]
+    metadata: Optional[Dict[str, Any]]
     newCustomer: Optional[NewCustomer]
 
 class CreateKeyResponse(TypedDict):
@@ -33,6 +35,9 @@ class ActivateKeyResponse(TypedDict):
     message: str
     licenseeName: Optional[str]
     licenseeEmail: Optional[str]
+    metadata: Optional[Dict[str, Any]]
+    versionId: Optional[str]
+    version: Optional[Dict[str, Any]]
 
 class DeactivateKeyParams(TypedDict):
     productId: str
@@ -58,6 +63,9 @@ class LicenseDetails(TypedDict):
     devices: List[DeviceDetails]
     activated: bool
     expirationDate: Optional[str]
+    versionId: Optional[str]
+    metadata: Optional[Dict[str, Any]]
+    version: Optional[Dict[str, Any]]
 
 class CustomerDetails(TypedDict):
     id: str
@@ -164,6 +172,8 @@ class CustomerLicenseKey(TypedDict):
     activations: int
     activated: bool
     expirationDate: Optional[str]
+    versionId: Optional[str]
+    metadata: Optional[Dict[str, Any]]
 
 class GetCustomerWithKeysParams(TypedDict):
     customerId: str
