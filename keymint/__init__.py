@@ -60,8 +60,14 @@ class KeyMint:
     def activate_key(self, params: ActivateKeyParams) -> ActivateKeyResponse:
         """
         Activates a license key for a specific device.
-        :param params: Parameters for activating the key.
-        :returns: The activation status.
+
+        IMPORTANT: If `host_id` is omitted, Keymint generates a random Device ID for the request.
+        Any subsequent activation attempt without a stable `host_id` will be treated as a brand-new 
+        machine, consuming additional activation slots. Applications using anonymous activations 
+        MUST cache the validation result locally.
+        
+        :param params: Activation parameters including productId, licenseKey, and optional hostId.
+        :return: Activation success message and licensee information.
         """
         return self._handle_request('POST', '/key/activate', params)
 
@@ -163,11 +169,3 @@ class KeyMint:
         query_params = {'customerId': params['customerId']}
         return self._handle_request('POST', '/customer/disable', params=None, query_params=query_params)
 
-    def get_customer_with_keys(self, params: GetCustomerWithKeysParams) -> GetCustomerWithKeysResponse:
-        """
-        Retrieves detailed information about a customer along with their license keys.
-        :param params: Parameters containing the customer ID.
-        :returns: The customer information with associated license keys.
-        """
-        query_params = {'customerId': params['customerId']}
-        return self._handle_request('GET', '/customer/keys', query_params=query_params)
