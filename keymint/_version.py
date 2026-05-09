@@ -1,6 +1,6 @@
 """KeyMint Python SDK version information."""
 
-__version__ = "2.0.1"
+__version__ = "2.1.0"
 __author__ = "KeyMint"
-__email__ = "admin@keymint.dev"
+__email__ = "cliff@keymint.dev"
 __url__ = "https://github.com/keymint-dev/keymint-python"
