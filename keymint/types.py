@@ -12,6 +12,7 @@ class CreateKeyParams(TypedDict):
     versionId: Optional[str]
     metadata: Optional[Dict[str, Any]]
     newCustomer: Optional[NewCustomer]
+    allowedHosts: Optional[List[str]]
 
 class CreateKeyResponse(TypedDict):
     code: int
@@ -38,6 +39,7 @@ class ActivateKeyResponse(TypedDict):
     metadata: Optional[Dict[str, Any]]
     versionId: Optional[str]
     version: Optional[Dict[str, Any]]
+    allowedHosts: Optional[List[str]]
 
 class DeactivateKeyParams(TypedDict):
     productId: str
@@ -65,6 +67,7 @@ class LicenseDetails(TypedDict):
     expirationDate: Optional[str]
     versionId: Optional[str]
     metadata: Optional[Dict[str, Any]]
+    allowedHosts: Optional[List[str]]
     version: Optional[Dict[str, Any]]
 
 class CustomerDetails(TypedDict):
@@ -174,6 +177,7 @@ class CustomerLicenseKey(TypedDict):
     expirationDate: Optional[str]
     versionId: Optional[str]
     metadata: Optional[Dict[str, Any]]
+    allowedHosts: Optional[List[str]]
 
 class GetCustomerWithKeysParams(TypedDict):
     customerId: str
