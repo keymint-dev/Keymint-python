@@ -6,7 +6,7 @@ A professional, production-ready SDK for integrating with the Keymint API in Pyt
 - **Type hints**: Full type hint support for better IDE integration and code safety.
 - **Comprehensive**: Complete API coverage for all Keymint endpoints.
 - **Consistent error handling**: All API errors are returned as structured objects or exceptions.
-- **Security**: Credentials are always loaded from environment variables.
+- **Machine Identity**: Built-in utilities for hardware fingerprinting and stable installation IDs.
 
 ## Installation
 Add the SDK to your project:
@@ -19,29 +19,34 @@ pip install keymint
 
 ```python
 import os
-from keymint import KeyMint
+from keymint import KeyMint, identity
 
-access_token = os.environ.get('KEYMINT_ACCESS_TOKEN')
+api_key = os.environ.get('KEYMINT_API_KEY')
 product_id = os.environ.get('KEYMINT_PRODUCT_ID')
 
-if not access_token or not product_id:
-    raise ValueError('Please set the KEYMINT_ACCESS_TOKEN and KEYMINT_PRODUCT_ID environment variables.')
+if not api_key or not product_id:
+    raise ValueError('Please set the KEYMINT_API_KEY and KEYMINT_PRODUCT_ID environment variables.')
 
-sdk = KeyMint(access_token)
+sdk = KeyMint(api_key)
 
-# Example: Create a key with authorized hosts
+# 1. Get a stable, unique ID for this machine
+host_id = identity.get_or_create_installation_id()
+
+# 2. Create a key authorized only for this machine
 result = sdk.create_key({ 
     'productId': product_id,
-    'allowedHosts': ['machine-a']
+    'allowedHosts': [host_id]
 })
 
 if result and 'key' in result:
-    key = result['key']
-    # ...
+    print(f"Created Key: {result['key']}")
 ```
 
-## Error Handling
-All SDK methods return a dictionary. If an API call fails, the SDK raises a `KeyMintApiError` exception with `message`, `code`, and `status` attributes.
+## Machine Identity
+Keymint provides utilities to uniquely identify machines for node-locking:
+
+- `identity.get_or_create_installation_id()`: **Recommended.** Generates a stable UUID anchored to hardware and persists it to `~/.keymint/installation-id`.
+- `identity.get_machine_id()`: Generates a SHA-256 fingerprint based on BIOS UUID, OS machine ID, and MAC address.
 
 ## API Methods
 
