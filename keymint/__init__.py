@@ -5,14 +5,14 @@ from ._version import __version__
 __all__ = ['KeyMint', 'KeyMintApiError', '__version__']
 
 class KeyMint:
-    def __init__(self, access_token: str, base_url: str = "https://api.keymint.dev"):
-        if not access_token:
-            raise ValueError("Access token is required to initialize the SDK.")
+    def __init__(self, api_key: str, base_url: str = "https://api.keymint.dev"):
+        if not api_key:
+            raise ValueError("API key is required to initialize the SDK.")
         
-        self.access_token = access_token
+        self.api_key = api_key
         self.base_url = base_url
         self.headers = {
-            'Authorization': f'Bearer {self.access_token}',
+            'Authorization': f'Bearer {self.api_key}',
             'Content-Type': 'application/json'
         }
 
@@ -78,6 +78,30 @@ class KeyMint:
         :returns: The deactivation confirmation.
         """
         return self._handle_request('POST', '/key/deactivate', params)
+
+    def floating_checkout(self, params: FloatingCheckoutParams) -> FloatingCheckoutResponse:
+        """
+        Checks out a floating license seat.
+        :param params: Parameters for checking out the license.
+        :returns: The checkout response containing sessionId and sessionSecret.
+        """
+        return self._handle_request('POST', '/key/checkout', params)
+
+    def floating_heartbeat(self, params: FloatingHeartbeatParams) -> FloatingHeartbeatResponse:
+        """
+        Sends a heartbeat to keep a floating license session alive.
+        :param params: Parameters for the heartbeat (includes rotating signature).
+        :returns: The heartbeat response with extended expiry and new nonce.
+        """
+        return self._handle_request('POST', '/key/heartbeat', params)
+
+    def floating_checkin(self, params: FloatingCheckinParams) -> FloatingCheckinResponse:
+        """
+        Checks in a floating license session, releasing the seat.
+        :param params: Parameters for checking in the license (includes rotating signature).
+        :returns: The checkin confirmation.
+        """
+        return self._handle_request('POST', '/key/checkin', params)
 
     def get_key(self, params: GetKeyParams) -> GetKeyResponse:
         """

@@ -2,24 +2,24 @@
 Example usage of the KeyMint Python SDK
 
 Before running this example:
-1. Get your access token from: https://app.keymint.dev/dashboard/developer/access-tokens
+1. Get your API key from: https://app.keymint.dev
 2. Get your product ID from your KeyMint dashboard
 3. Set environment variables:
-   export KEYMINT_ACCESS_TOKEN="your_token_here"
+   export KEYMINT_API_KEY="your_token_here"
    export KEYMINT_PRODUCT_ID="your_product_id_here"
 """
 
 import os
 import uuid
-from keymint import KeyMintSDK, KeyMintApiError
+from keymint import KeyMint, KeyMintApiError
 
 def main():
     # Get credentials from environment variables
-    access_token = os.environ.get('KEYMINT_ACCESS_TOKEN')
+    api_key = os.environ.get('KEYMINT_API_KEY')
     product_id = os.environ.get('KEYMINT_PRODUCT_ID')
     
-    if not access_token:
-        print("❌ Please set KEYMINT_ACCESS_TOKEN environment variable")
+    if not api_key:
+        print("❌ Please set KEYMINT_API_KEY environment variable")
         return
     
     if not product_id:
@@ -30,7 +30,7 @@ def main():
     print("-" * 40)
     
     # Initialize the SDK
-    sdk = KeyMintSDK(access_token)
+    sdk = KeyMint(api_key)
     
     try:
         # 1. Create a customer
