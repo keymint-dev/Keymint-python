@@ -7,6 +7,7 @@ Provides two methods for identifying machines:
 """
 
 import hashlib
+import hmac
 import os
 import platform
 import subprocess
@@ -195,7 +196,27 @@ def get_or_create_installation_id(storage_path: Optional[str] = None) -> str:
     composite_id = f'{new_uuid}:{hardware_anchor}:{int(time.time() * 1000)}'
 
     # 3. Persist it
-    file_path.parent.mkdir(parents=True, exist_ok=True)
-    file_path.write_text(composite_id, encoding='utf-8')
+    try:
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        file_path.write_text(composite_id, encoding='utf-8')
+    except Exception:
+        pass  # Silently fallback to in-memory ID if filesystem is read-only
 
     return hashlib.sha256(composite_id.encode('utf-8')).hexdigest()
+
+def generate_session_signature(session_id: str, nonce: str, session_secret: str) -> str:
+    """
+    Generates a cryptographic signature for a heartbeat or checkin request
+    using the session_secret and the rotating nextNonce (passed as the timestamp).
+
+    Args:
+        session_id: The 22-character unique session ID.
+        nonce: The rotating nonce string (nextNonce) received from the previous response.
+        session_secret: The temporary session secret key received during checkout.
+
+    Returns:
+        A 64-character hexadecimal signature string.
+    """
+    key_bytes = session_secret.encode('utf-8')
+    msg_bytes = f"{session_id}:{nonce}".encode('utf-8')
+    return hmac.new(key_bytes, msg_bytes, hashlib.sha256).hexdigest()

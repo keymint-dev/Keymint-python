@@ -187,3 +187,51 @@ class GetCustomerWithKeysResponse(TypedDict):
     status: bool
     data: Dict[str, Any]  # Contains customer and licenseKeys
     code: int
+
+class FloatingCheckoutParams(TypedDict):
+    productId: str
+    licenseKey: str
+    hostId: str
+    deviceTag: Optional[str]
+    userIdentifier: Optional[str]
+    apiKey: Optional[str]
+
+class FloatingCheckoutResponse(TypedDict):
+    code: int
+    message: str
+    sessionId: str
+    sessionSecret: str
+    nextNonce: str
+    expiresAt: str
+    heartbeatInterval: int
+    metadata: Optional[Dict[str, Any]]
+    currentSessions: Optional[int]
+    maxSessions: Optional[int]
+    licenseeName: Optional[str]
+    licenseeEmail: Optional[str]
+
+class FloatingHeartbeatParams(TypedDict):
+    productId: str
+    licenseKey: str
+    sessionId: str
+    timestamp: Any  # rotating nonce (nextNonce) received from previous response
+    signature: str
+    apiKey: Optional[str]
+
+class FloatingHeartbeatResponse(TypedDict):
+    code: int
+    message: str
+    expiresAt: str
+    nextNonce: str
+
+class FloatingCheckinParams(TypedDict):
+    productId: str
+    licenseKey: str
+    sessionId: str
+    timestamp: Any  # rotating nonce (nextNonce) received from previous response
+    signature: str
+    apiKey: Optional[str]
+
+class FloatingCheckinResponse(TypedDict):
+    code: int
+    message: str

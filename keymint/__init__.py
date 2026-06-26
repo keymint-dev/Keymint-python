@@ -193,3 +193,60 @@ class KeyMint:
         query_params = {'customerId': params['customerId']}
         return self._handle_request('POST', '/customer/disable', params=None, query_params=query_params)
 
+    @staticmethod
+    def verify_webhook_signature(payload: str, header: str, secret: str, tolerance_seconds: int = 300) -> bool:
+        """
+        Verifies a webhook payload signature received from Keymint.
+        :param payload: The raw request body as a string.
+        :param header: The value of the "Keymint-Signature" header.
+        :param secret: The webhook endpoint's signing secret.
+        :param tolerance_seconds: Time tolerance in seconds to prevent replay attacks. Defaults to 300 (5 minutes).
+        :returns: True if the signature is valid, False otherwise.
+        """
+        import hmac
+        import hashlib
+        import time
+
+        if not header or not secret:
+            return False
+
+        try:
+            # Parse header (e.g. t=1719374021,v1=signature)
+            timestamp_str = ""
+            signature = ""
+            parts = header.split(",")
+            for part in parts:
+                kv = part.strip().split("=", 1)
+                if len(kv) == 2:
+                    if kv[0] == "t":
+                        timestamp_str = kv[1]
+                    elif kv[0] == "v1":
+                        signature = kv[1]
+
+            if not timestamp_str or not signature:
+                return False
+
+            # Check timestamp validity
+            try:
+                timestamp_int = int(timestamp_str)
+            except ValueError:
+                return False
+
+            now = int(time.time())
+            if abs(now - timestamp_int) > tolerance_seconds:
+                return False
+
+            # Verify HMAC signature
+            signable_content = f"{timestamp_str}.{payload}".encode("utf-8")
+            expected_signature = hmac.new(
+                secret.encode("utf-8"),
+                signable_content,
+                hashlib.sha256
+            ).hexdigest()
+
+            # Constant-time comparison to prevent timing attacks
+            return hmac.compare_digest(expected_signature, signature)
+        except Exception:
+            return False
+
+
