@@ -82,6 +82,16 @@ Keymint provides utilities to uniquely identify machines for node-locking:
 |-------------------------|--------------------------------------------------|
 | `verify_webhook_signature`| Verifies the signature of a webhook request payload. |
 
+## Idempotency
+
+All mutating SDK methods support idempotency keys to safely retry requests in case of network drops. Pass a unique string (recommended: UUID v4) as the optional `idempotency_key` keyword argument:
+
+```python
+result = sdk.create_key({ 
+    'productId': product_id,
+}, idempotency_key='9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d')
+```
+
 ## License
 MIT
 

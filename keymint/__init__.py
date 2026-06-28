@@ -16,17 +16,21 @@ class KeyMint:
             'Content-Type': 'application/json'
         }
 
-    def _handle_request(self, method: str, endpoint: str, params: dict = None, query_params: dict = None):
+    def _handle_request(self, method: str, endpoint: str, params: dict = None, query_params: dict = None, idempotency_key: str = None):
         url = f'{self.base_url}{endpoint}'
+        headers = self.headers.copy()
+        if idempotency_key:
+            headers['Idempotency-Key'] = idempotency_key
+            
         try:
             if method.upper() == 'GET':
-                response = requests.get(url, params=query_params, headers=self.headers)
+                response = requests.get(url, params=query_params, headers=headers)
             elif method.upper() == 'POST':
-                response = requests.post(url, json=params, headers=self.headers)
+                response = requests.post(url, json=params, headers=headers)
             elif method.upper() == 'PUT':
-                response = requests.put(url, json=params, headers=self.headers)
+                response = requests.put(url, json=params, headers=headers)
             elif method.upper() == 'DELETE':
-                response = requests.delete(url, params=query_params, headers=self.headers)
+                response = requests.delete(url, params=query_params, headers=headers)
             else:
                 raise ValueError(f"Unsupported HTTP method: {method}")
             
@@ -49,15 +53,16 @@ class KeyMint:
         except Exception as err:
             raise KeyMintApiError(message=str(err), code=-1)
 
-    def create_key(self, params: CreateKeyParams) -> CreateKeyResponse:
+    def create_key(self, params: CreateKeyParams, idempotency_key: str = None) -> CreateKeyResponse:
         """
         Creates a new license key.
         :param params: Parameters for creating the key.
+        :param idempotency_key: Optional unique identifier to ensure request idempotency.
         :returns: The created key information.
         """
-        return self._handle_request('POST', '/key', params)
+        return self._handle_request('POST', '/key', params, idempotency_key=idempotency_key)
 
-    def activate_key(self, params: ActivateKeyParams) -> ActivateKeyResponse:
+    def activate_key(self, params: ActivateKeyParams, idempotency_key: str = None) -> ActivateKeyResponse:
         """
         Activates a license key for a specific device.
 
@@ -67,41 +72,46 @@ class KeyMint:
         MUST cache the validation result locally.
         
         :param params: Activation parameters including productId, licenseKey, and optional hostId.
+        :param idempotency_key: Optional unique identifier to ensure request idempotency.
         :return: Activation success message and licensee information.
         """
-        return self._handle_request('POST', '/key/activate', params)
+        return self._handle_request('POST', '/key/activate', params, idempotency_key=idempotency_key)
 
-    def deactivate_key(self, params: DeactivateKeyParams) -> DeactivateKeyResponse:
+    def deactivate_key(self, params: DeactivateKeyParams, idempotency_key: str = None) -> DeactivateKeyResponse:
         """
         Deactivates a device from a license key.
         :param params: Parameters for deactivating the key.
+        :param idempotency_key: Optional unique identifier to ensure request idempotency.
         :returns: The deactivation confirmation.
         """
-        return self._handle_request('POST', '/key/deactivate', params)
+        return self._handle_request('POST', '/key/deactivate', params, idempotency_key=idempotency_key)
 
-    def floating_checkout(self, params: FloatingCheckoutParams) -> FloatingCheckoutResponse:
+    def floating_checkout(self, params: FloatingCheckoutParams, idempotency_key: str = None) -> FloatingCheckoutResponse:
         """
         Checks out a floating license seat.
         :param params: Parameters for checking out the license.
+        :param idempotency_key: Optional unique identifier to ensure request idempotency.
         :returns: The checkout response containing sessionId and sessionSecret.
         """
-        return self._handle_request('POST', '/key/checkout', params)
+        return self._handle_request('POST', '/key/checkout', params, idempotency_key=idempotency_key)
 
-    def floating_heartbeat(self, params: FloatingHeartbeatParams) -> FloatingHeartbeatResponse:
+    def floating_heartbeat(self, params: FloatingHeartbeatParams, idempotency_key: str = None) -> FloatingHeartbeatResponse:
         """
         Sends a heartbeat to keep a floating license session alive.
         :param params: Parameters for the heartbeat (includes rotating signature).
+        :param idempotency_key: Optional unique identifier to ensure request idempotency.
         :returns: The heartbeat response with extended expiry and new nonce.
         """
-        return self._handle_request('POST', '/key/heartbeat', params)
+        return self._handle_request('POST', '/key/heartbeat', params, idempotency_key=idempotency_key)
 
-    def floating_checkin(self, params: FloatingCheckinParams) -> FloatingCheckinResponse:
+    def floating_checkin(self, params: FloatingCheckinParams, idempotency_key: str = None) -> FloatingCheckinResponse:
         """
         Checks in a floating license session, releasing the seat.
         :param params: Parameters for checking in the license (includes rotating signature).
+        :param idempotency_key: Optional unique identifier to ensure request idempotency.
         :returns: The checkin confirmation.
         """
-        return self._handle_request('POST', '/key/checkin', params)
+        return self._handle_request('POST', '/key/checkin', params, idempotency_key=idempotency_key)
 
     def get_key(self, params: GetKeyParams) -> GetKeyResponse:
         """
@@ -115,31 +125,34 @@ class KeyMint:
         }
         return self._handle_request('GET', '/key', query_params=query_params)
 
-    def block_key(self, params: BlockKeyParams) -> BlockKeyResponse:
+    def block_key(self, params: BlockKeyParams, idempotency_key: str = None) -> BlockKeyResponse:
         """
         Blocks a specific license key.
         :param params: Parameters for blocking the key.
+        :param idempotency_key: Optional unique identifier to ensure request idempotency.
         :returns: The block confirmation.
         """
-        return self._handle_request('POST', '/key/block', params)
+        return self._handle_request('POST', '/key/block', params, idempotency_key=idempotency_key)
 
-    def unblock_key(self, params: UnblockKeyParams) -> UnblockKeyResponse:
+    def unblock_key(self, params: UnblockKeyParams, idempotency_key: str = None) -> UnblockKeyResponse:
         """
         Unblocks a previously blocked license key.
         :param params: Parameters for unblocking the key.
+        :param idempotency_key: Optional unique identifier to ensure request idempotency.
         :returns: The unblock confirmation.
         """
-        return self._handle_request('POST', '/key/unblock', params)
+        return self._handle_request('POST', '/key/unblock', params, idempotency_key=idempotency_key)
 
     # Customer Management Methods
     
-    def create_customer(self, params: CreateCustomerParams) -> CreateCustomerResponse:
+    def create_customer(self, params: CreateCustomerParams, idempotency_key: str = None) -> CreateCustomerResponse:
         """
         Creates a new customer.
         :param params: Parameters for creating the customer.
+        :param idempotency_key: Optional unique identifier to ensure request idempotency.
         :returns: The created customer information.
         """
-        return self._handle_request('POST', '/customer', params)
+        return self._handle_request('POST', '/customer', params, idempotency_key=idempotency_key)
 
     def get_all_customers(self, params: Optional[GetAllCustomersParams] = None) -> GetAllCustomersResponse:
         """
@@ -158,22 +171,24 @@ class KeyMint:
         query_params = {'customerId': params['customerId']}
         return self._handle_request('GET', '/customer/by-id', query_params=query_params)
 
-    def update_customer(self, params: UpdateCustomerParams) -> UpdateCustomerResponse:
+    def update_customer(self, params: UpdateCustomerParams, idempotency_key: str = None) -> UpdateCustomerResponse:
         """
         Updates an existing customer's information.
         :param params: Parameters for updating the customer.
+        :param idempotency_key: Optional unique identifier to ensure request idempotency.
         :returns: The update confirmation.
         """
-        return self._handle_request('PUT', '/customer/by-id', params)
+        return self._handle_request('PUT', '/customer/by-id', params, idempotency_key=idempotency_key)
 
-    def delete_customer(self, params: DeleteCustomerParams) -> DeleteCustomerResponse:
+    def delete_customer(self, params: DeleteCustomerParams, idempotency_key: str = None) -> DeleteCustomerResponse:
         """
         Permanently deletes a customer and all associated license keys.
         :param params: Parameters containing the customer ID.
+        :param idempotency_key: Optional unique identifier to ensure request idempotency.
         :returns: The deletion confirmation.
         """
         query_params = {'customerId': params['customerId']}
-        return self._handle_request('DELETE', '/customer/by-id', query_params=query_params)
+        return self._handle_request('DELETE', '/customer/by-id', query_params=query_params, idempotency_key=idempotency_key)
 
     def get_customer_with_keys(self, params: GetCustomerWithKeysParams) -> GetCustomerWithKeysResponse:
         """
@@ -184,14 +199,15 @@ class KeyMint:
         query_params = {'customerId': params['customerId']}
         return self._handle_request('GET', '/customer/keys', query_params=query_params)
 
-    def toggle_customer_status(self, params: ToggleCustomerStatusParams) -> ToggleCustomerStatusResponse:
+    def toggle_customer_status(self, params: ToggleCustomerStatusParams, idempotency_key: str = None) -> ToggleCustomerStatusResponse:
         """
         Toggles the active status of a customer account (disable or enable).
         :param params: Parameters containing the customer ID.
+        :param idempotency_key: Optional unique identifier to ensure request idempotency.
         :returns: The status toggle confirmation.
         """
         query_params = {'customerId': params['customerId']}
-        return self._handle_request('POST', '/customer/disable', params=None, query_params=query_params)
+        return self._handle_request('POST', '/customer/disable', params=None, query_params=query_params, idempotency_key=idempotency_key)
 
     @staticmethod
     def verify_webhook_signature(payload: str, header: str, secret: str, tolerance_seconds: int = 300) -> bool:
