@@ -8,7 +8,7 @@ setup(
     version="2.3.0",
     author="KeyMint",
     author_email="cliff@keymint.dev",
-    description="Official Python SDK for KeyMint license management with comprehensive API coverage.",
+    description="License key validation, activation, and management for Python. Supports node-locking, offline licensing, and hardware fingerprinting.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/keymint-dev/keymint-python",
@@ -35,7 +35,7 @@ setup(
         "Programming Language :: Python :: 3.12",
         "Operating System :: OS Independent",
     ],
-    keywords="keymint license licensing api sdk drm software-licensing",
+    keywords="license-key validation activation node-lock hardware-id copy-protection product-key drm offline-licensing keymint license licensing api",
     python_requires='>=3.6',
     install_requires=[
         'requests>=2.25.0',
