@@ -11,7 +11,9 @@ Before running this example:
 
 import os
 import uuid
+
 from keymint import KeyMint, KeyMintApiError
+
 
 def main():
     # Get credentials from environment variables

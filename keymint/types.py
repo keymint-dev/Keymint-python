@@ -1,40 +1,41 @@
-from typing import TypedDict, Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional, TypedDict
+
 
 class NewCustomer(TypedDict):
     name: str
-    email: Optional[str]
+    email: str | None
 
 class KeyFormat(TypedDict):
-    sections: Optional[int]
-    sectionLength: Optional[int]
-    separator: Optional[str]
-    charset: Optional[str]
-    prefix: Optional[str]
-    suffix: Optional[str]
-    case: Optional[str]  # 'upper' | 'lower' | 'mixed'
+    sections: int | None
+    sectionLength: int | None
+    separator: str | None
+    charset: str | None
+    prefix: str | None
+    suffix: str | None
+    case: str | None  # 'upper' | 'lower' | 'mixed'
 
 class CreateKeyParams(TypedDict):
     productId: str
-    maxActivations: Optional[str]
-    expiryDate: Optional[str]
-    customerId: Optional[str]
-    versionId: Optional[str]
-    metadata: Optional[Dict[str, Any]]
-    newCustomer: Optional[NewCustomer]
-    allowedHosts: Optional[List[str]]
-    format: Optional[KeyFormat]
-    amountKeys: Optional[str]
-    licenseType: Optional[str]  # 'node-locked' | 'floating'
-    maxConcurrentSessions: Optional[int]
-    heartbeatInterval: Optional[int]
-    sessionLeaseDuration: Optional[int]
+    maxActivations: str | None
+    expiryDate: str | None
+    customerId: str | None
+    versionId: str | None
+    metadata: dict[str, Any] | None
+    newCustomer: NewCustomer | None
+    allowedHosts: list[str] | None
+    format: KeyFormat | None
+    amountKeys: str | None
+    licenseType: str | None  # 'node-locked' | 'floating'
+    maxConcurrentSessions: int | None
+    heartbeatInterval: int | None
+    sessionLeaseDuration: int | None
 
 class CreateKeyResponse(TypedDict):
     code: int
     key: str
 
 class KeyMintApiError(Exception):
-    def __init__(self, message: str, code: int, status: Optional[int] = None):
+    def __init__(self, message: str, code: int, status: int | None = None):
         super().__init__(message)
         self.message = message
         self.code = code
@@ -43,25 +44,25 @@ class KeyMintApiError(Exception):
 class ActivateKeyParams(TypedDict):
     productId: str
     licenseKey: str
-    hostId: Optional[str]
-    deviceTag: Optional[str]
-    licensee: Optional[Dict[str, str]]  # { name, email }
-    version: Optional[str]
+    hostId: str | None
+    deviceTag: str | None
+    licensee: dict[str, str] | None  # { name, email }
+    version: str | None
 
 class ActivateKeyResponse(TypedDict):
     code: int
     message: str
-    licenseeName: Optional[str]
-    licenseeEmail: Optional[str]
-    metadata: Optional[Dict[str, Any]]
-    versionId: Optional[str]
-    version: Optional[Dict[str, Any]]
-    allowedHosts: Optional[List[str]]
+    licenseeName: str | None
+    licenseeEmail: str | None
+    metadata: dict[str, Any] | None
+    versionId: str | None
+    version: dict[str, Any] | None
+    allowedHosts: list[str] | None
 
 class DeactivateKeyParams(TypedDict):
     productId: str
     licenseKey: str
-    hostId: Optional[str]
+    hostId: str | None
 
 class DeactivateKeyResponse(TypedDict):
     message: str
@@ -69,8 +70,8 @@ class DeactivateKeyResponse(TypedDict):
 
 class DeviceDetails(TypedDict):
     hostId: str
-    deviceTag: Optional[str]
-    ipAddress: Optional[str]
+    deviceTag: str | None
+    ipAddress: str | None
     activationTime: str
 
 class LicenseDetails(TypedDict):
@@ -79,18 +80,18 @@ class LicenseDetails(TypedDict):
     productId: str
     maxActivations: int
     activations: int
-    devices: List[DeviceDetails]
+    devices: list[DeviceDetails]
     activated: bool
-    expirationDate: Optional[str]
-    versionId: Optional[str]
-    metadata: Optional[Dict[str, Any]]
-    allowedHosts: Optional[List[str]]
-    version: Optional[Dict[str, Any]]
+    expirationDate: str | None
+    versionId: str | None
+    metadata: dict[str, Any] | None
+    allowedHosts: list[str] | None
+    version: dict[str, Any] | None
 
 class CustomerDetails(TypedDict):
     id: str
-    name: Optional[str]
-    email: Optional[str]
+    name: str | None
+    email: str | None
     active: bool
 
 class GetKeyParams(TypedDict):
@@ -98,7 +99,7 @@ class GetKeyParams(TypedDict):
     licenseKey: str
 
 class GetKeyResponse(TypedDict):
-    data: Dict[str, Any]
+    data: dict[str, Any]
     code: int
 
 class BlockKeyParams(TypedDict):
@@ -121,19 +122,19 @@ class UnblockKeyResponse(TypedDict):
 
 class CreateCustomerParams(TypedDict):
     name: str
-    email: Optional[str]
+    email: str | None
 
 class CreateCustomerResponse(TypedDict):
     action: str
     status: bool
     message: str
-    data: Dict[str, Any]
+    data: dict[str, Any]
     code: int
 
 class GetAllCustomersParams(TypedDict):
-    page: Optional[int]
-    limit: Optional[int]
-    email: Optional[str]
+    page: int | None
+    limit: int | None
+    email: str | None
 
 class PaginationMeta(TypedDict):
     total: int
@@ -144,8 +145,8 @@ class PaginationMeta(TypedDict):
 class GetAllCustomersResponse(TypedDict):
     action: str
     status: bool
-    data: List[Dict[str, Any]]
-    meta: Optional[PaginationMeta]
+    data: list[dict[str, Any]]
+    meta: PaginationMeta | None
     code: int
 
 class GetCustomerByIdParams(TypedDict):
@@ -154,13 +155,13 @@ class GetCustomerByIdParams(TypedDict):
 class GetCustomerByIdResponse(TypedDict):
     action: str
     status: bool
-    data: List[Dict[str, Any]]
+    data: list[dict[str, Any]]
     code: int
 
 class UpdateCustomerParams(TypedDict):
     customerId: str
-    name: Optional[str]  # Optional: Updated customer name
-    email: Optional[str] # Optional: Updated customer email
+    name: str | None  # Optional: Updated customer name
+    email: str | None # Optional: Updated customer email
 
 class UpdateCustomerResponse(TypedDict):
     action: str
@@ -191,10 +192,10 @@ class CustomerLicenseKey(TypedDict):
     maxActivations: int
     activations: int
     activated: bool
-    expirationDate: Optional[str]
-    versionId: Optional[str]
-    metadata: Optional[Dict[str, Any]]
-    allowedHosts: Optional[List[str]]
+    expirationDate: str | None
+    versionId: str | None
+    metadata: dict[str, Any] | None
+    allowedHosts: list[str] | None
 
 class GetCustomerWithKeysParams(TypedDict):
     customerId: str
@@ -206,9 +207,9 @@ class FloatingCheckoutParams(TypedDict):
     productId: str
     licenseKey: str
     hostId: str
-    deviceTag: Optional[str]
-    userIdentifier: Optional[str]
-    apiKey: Optional[str]
+    deviceTag: str | None
+    userIdentifier: str | None
+    apiKey: str | None
 
 class FloatingCheckoutResponse(TypedDict):
     code: int
@@ -218,11 +219,11 @@ class FloatingCheckoutResponse(TypedDict):
     nextNonce: str
     expiresAt: str
     heartbeatInterval: int
-    metadata: Optional[Dict[str, Any]]
-    currentSessions: Optional[int]
-    maxSessions: Optional[int]
-    licenseeName: Optional[str]
-    licenseeEmail: Optional[str]
+    metadata: dict[str, Any] | None
+    currentSessions: int | None
+    maxSessions: int | None
+    licenseeName: str | None
+    licenseeEmail: str | None
 
 class FloatingHeartbeatParams(TypedDict):
     productId: str
@@ -230,7 +231,7 @@ class FloatingHeartbeatParams(TypedDict):
     sessionId: str
     timestamp: Any  # rotating nonce (nextNonce) received from previous response
     signature: str
-    apiKey: Optional[str]
+    apiKey: str | None
 
 class FloatingHeartbeatResponse(TypedDict):
     code: int
@@ -244,7 +245,7 @@ class FloatingCheckinParams(TypedDict):
     sessionId: str
     timestamp: Any  # rotating nonce (nextNonce) received from previous response
     signature: str
-    apiKey: Optional[str]
+    apiKey: str | None
 
 class FloatingCheckinResponse(TypedDict):
     code: int
@@ -253,29 +254,29 @@ class FloatingCheckinResponse(TypedDict):
 class UpdateKeyParams(TypedDict):
     productId: str
     licenseKey: str
-    maxActivations: Optional[Any]   # string or number
-    expiryDate: Optional[str]
-    customerId: Optional[str]
-    newCustomer: Optional[NewCustomer]
-    metadata: Optional[Dict[str, Any]]
-    versionId: Optional[str]
-    allowedHosts: Optional[List[str]]
-    licenseType: Optional[str]  # 'node-locked' | 'floating'
-    maxConcurrentSessions: Optional[int]
-    heartbeatInterval: Optional[int]
-    sessionLeaseDuration: Optional[int]
+    maxActivations: Any | None   # string or number
+    expiryDate: str | None
+    customerId: str | None
+    newCustomer: NewCustomer | None
+    metadata: dict[str, Any] | None
+    versionId: str | None
+    allowedHosts: list[str] | None
+    licenseType: str | None  # 'node-locked' | 'floating'
+    maxConcurrentSessions: int | None
+    heartbeatInterval: int | None
+    sessionLeaseDuration: int | None
 
 class UpdateKeyResponse(TypedDict):
     code: int
     message: str
-    affectedCount: Optional[int]
+    affectedCount: int | None
 
 class SignKeyParams(TypedDict):
     productId: str
     licenseKey: str
     hostId: str
-    ttl: Optional[int]
+    ttl: int | None
 
 class SignKeyResponse(TypedDict):
     code: int
-    file: Dict[str, Any]  # { signedKey, keyId, publicKeyFingerprint }
+    file: dict[str, Any]  # { signedKey, keyId, publicKeyFingerprint }

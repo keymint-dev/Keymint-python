@@ -10,13 +10,12 @@ import hashlib
 import hmac
 import os
 import platform
-import subprocess
-import uuid
 import re
+import subprocess
 import time
+import uuid
 from pathlib import Path
 from typing import Optional
-
 
 # ─── Garbage Detection ──────────────────────────────────────────────────
 
@@ -54,7 +53,7 @@ def _hash(value: str) -> str:
 
 # ─── Fingerprint Layers ────────────────────────────────────────────────
 
-def _get_bios_uuid() -> Optional[str]:
+def _get_bios_uuid() -> str | None:
     """Layer 1: BIOS / Hardware UUID."""
     system = platform.system()
     try:
@@ -82,7 +81,7 @@ def _get_bios_uuid() -> Optional[str]:
     return None
 
 
-def _get_os_machine_id() -> Optional[str]:
+def _get_os_machine_id() -> str | None:
     """Layer 2: OS-level persistent machine ID."""
     system = platform.system()
     try:
@@ -112,11 +111,11 @@ def _get_os_machine_id() -> Optional[str]:
     return None
 
 
-def _get_primary_mac() -> Optional[str]:
+def _get_primary_mac() -> str | None:
     """Layer 3: Primary network interface MAC address."""
     try:
-        import socket
         import fcntl
+        import socket
         import struct
     except ImportError:
         pass
@@ -136,7 +135,7 @@ def _get_primary_mac() -> Optional[str]:
 
 # ─── Public API ─────────────────────────────────────────────────────────
 
-def get_machine_id() -> Optional[str]:
+def get_machine_id() -> str | None:
     """
     Best-effort hardware fingerprint. Attempts to read the machine's
     BIOS/System UUID, then falls back through OS-level IDs and network
@@ -162,7 +161,7 @@ def get_machine_id() -> Optional[str]:
     return None
 
 
-def get_or_create_installation_id(storage_path: Optional[str] = None) -> str:
+def get_or_create_installation_id(storage_path: str | None = None) -> str:
     """
     Returns a guaranteed-unique, guaranteed-stable installation identifier.
     On first call, generates a UUIDv4 seeded with whatever hardware info
@@ -218,5 +217,5 @@ def generate_session_signature(session_id: str, nonce: str, session_secret: str)
         A 64-character hexadecimal signature string.
     """
     key_bytes = session_secret.encode('utf-8')
-    msg_bytes = f"{session_id}:{nonce}".encode('utf-8')
+    msg_bytes = f"{session_id}:{nonce}".encode()
     return hmac.new(key_bytes, msg_bytes, hashlib.sha256).hexdigest()

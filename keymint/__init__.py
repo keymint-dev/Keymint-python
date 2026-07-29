@@ -1,6 +1,7 @@
 import requests
-from .types import *
+
 from ._version import __version__
+from .types import *
 
 __all__ = ['KeyMint', 'KeyMintApiError', '__version__']
 
@@ -16,7 +17,7 @@ class KeyMint:
             'Content-Type': 'application/json'
         }
 
-    def _handle_request(self, method: str, endpoint: str, params: dict = None, query_params: dict = None, idempotency_key: str = None):
+    def _handle_request(self, method: str, endpoint: str, params: dict | None = None, query_params: dict | None = None, idempotency_key: str | None = None):
         url = f'{self.base_url}{endpoint}'
         headers = self.headers.copy()
         if idempotency_key:
@@ -55,7 +56,7 @@ class KeyMint:
         except Exception as err:
             raise KeyMintApiError(message=str(err), code=-1)
 
-    def create_key(self, params: CreateKeyParams, idempotency_key: str = None) -> CreateKeyResponse:
+    def create_key(self, params: CreateKeyParams, idempotency_key: str | None = None) -> CreateKeyResponse:
         """
         Creates a new license key.
         :param params: Parameters for creating the key.
@@ -64,7 +65,7 @@ class KeyMint:
         """
         return self._handle_request('POST', '/key', params, idempotency_key=idempotency_key)
 
-    def activate_key(self, params: ActivateKeyParams, idempotency_key: str = None) -> ActivateKeyResponse:
+    def activate_key(self, params: ActivateKeyParams, idempotency_key: str | None = None) -> ActivateKeyResponse:
         """
         Activates a license key for a specific device.
 
@@ -79,7 +80,7 @@ class KeyMint:
         """
         return self._handle_request('POST', '/key/activate', params, idempotency_key=idempotency_key)
 
-    def deactivate_key(self, params: DeactivateKeyParams, idempotency_key: str = None) -> DeactivateKeyResponse:
+    def deactivate_key(self, params: DeactivateKeyParams, idempotency_key: str | None = None) -> DeactivateKeyResponse:
         """
         Deactivates a device from a license key.
         :param params: Parameters for deactivating the key.
@@ -88,7 +89,7 @@ class KeyMint:
         """
         return self._handle_request('POST', '/key/deactivate', params, idempotency_key=idempotency_key)
 
-    def floating_checkout(self, params: FloatingCheckoutParams, idempotency_key: str = None) -> FloatingCheckoutResponse:
+    def floating_checkout(self, params: FloatingCheckoutParams, idempotency_key: str | None = None) -> FloatingCheckoutResponse:
         """
         Checks out a floating license seat.
         :param params: Parameters for checking out the license.
@@ -97,7 +98,7 @@ class KeyMint:
         """
         return self._handle_request('POST', '/key/checkout', params, idempotency_key=idempotency_key)
 
-    def floating_heartbeat(self, params: FloatingHeartbeatParams, idempotency_key: str = None) -> FloatingHeartbeatResponse:
+    def floating_heartbeat(self, params: FloatingHeartbeatParams, idempotency_key: str | None = None) -> FloatingHeartbeatResponse:
         """
         Sends a heartbeat to keep a floating license session alive.
         :param params: Parameters for the heartbeat (includes rotating signature).
@@ -106,7 +107,7 @@ class KeyMint:
         """
         return self._handle_request('POST', '/key/heartbeat', params, idempotency_key=idempotency_key)
 
-    def floating_checkin(self, params: FloatingCheckinParams, idempotency_key: str = None) -> FloatingCheckinResponse:
+    def floating_checkin(self, params: FloatingCheckinParams, idempotency_key: str | None = None) -> FloatingCheckinResponse:
         """
         Checks in a floating license session, releasing the seat.
         :param params: Parameters for checking in the license (includes rotating signature).
@@ -127,7 +128,7 @@ class KeyMint:
         }
         return self._handle_request('GET', '/key', query_params=query_params)
 
-    def block_key(self, params: BlockKeyParams, idempotency_key: str = None) -> BlockKeyResponse:
+    def block_key(self, params: BlockKeyParams, idempotency_key: str | None = None) -> BlockKeyResponse:
         """
         Blocks a specific license key.
         :param params: Parameters for blocking the key.
@@ -136,7 +137,7 @@ class KeyMint:
         """
         return self._handle_request('POST', '/key/block', params, idempotency_key=idempotency_key)
 
-    def unblock_key(self, params: UnblockKeyParams, idempotency_key: str = None) -> UnblockKeyResponse:
+    def unblock_key(self, params: UnblockKeyParams, idempotency_key: str | None = None) -> UnblockKeyResponse:
         """
         Unblocks a previously blocked license key.
         :param params: Parameters for unblocking the key.
@@ -145,7 +146,7 @@ class KeyMint:
         """
         return self._handle_request('POST', '/key/unblock', params, idempotency_key=idempotency_key)
 
-    def update_key(self, params: 'UpdateKeyParams', idempotency_key: str = None) -> 'UpdateKeyResponse':
+    def update_key(self, params: 'UpdateKeyParams', idempotency_key: str | None = None) -> 'UpdateKeyResponse':
         """
         Updates an existing license key.
         Requires productId and licenseKey. All other fields are optional.
@@ -155,7 +156,7 @@ class KeyMint:
         """
         return self._handle_request('PATCH', '/key', params, idempotency_key=idempotency_key)
 
-    def sign_key(self, params: 'SignKeyParams', idempotency_key: str = None) -> 'SignKeyResponse':
+    def sign_key(self, params: 'SignKeyParams', idempotency_key: str | None = None) -> 'SignKeyResponse':
         """
         Signs a license key for offline (air-gapped) validation.
         Requires admin API key scope and Standard plan.
@@ -167,7 +168,7 @@ class KeyMint:
 
     # Customer Management Methods
     
-    def create_customer(self, params: CreateCustomerParams, idempotency_key: str = None) -> CreateCustomerResponse:
+    def create_customer(self, params: CreateCustomerParams, idempotency_key: str | None = None) -> CreateCustomerResponse:
         """
         Creates a new customer.
         :param params: Parameters for creating the customer.
@@ -193,7 +194,7 @@ class KeyMint:
         query_params = {'customerId': params['customerId']}
         return self._handle_request('GET', '/customer/by-id', query_params=query_params)
 
-    def update_customer(self, params: UpdateCustomerParams, idempotency_key: str = None) -> UpdateCustomerResponse:
+    def update_customer(self, params: UpdateCustomerParams, idempotency_key: str | None = None) -> UpdateCustomerResponse:
         """
         Updates an existing customer's information.
         :param params: Parameters for updating the customer.
@@ -202,7 +203,7 @@ class KeyMint:
         """
         return self._handle_request('PUT', '/customer/by-id', params, idempotency_key=idempotency_key)
 
-    def delete_customer(self, params: DeleteCustomerParams, idempotency_key: str = None) -> DeleteCustomerResponse:
+    def delete_customer(self, params: DeleteCustomerParams, idempotency_key: str | None = None) -> DeleteCustomerResponse:
         """
         Permanently deletes a customer and all associated license keys.
         :param params: Parameters containing the customer ID.
@@ -221,7 +222,7 @@ class KeyMint:
         query_params = {'customerId': params['customerId']}
         return self._handle_request('GET', '/customer/keys', query_params=query_params)
 
-    def toggle_customer_status(self, params: ToggleCustomerStatusParams, idempotency_key: str = None) -> ToggleCustomerStatusResponse:
+    def toggle_customer_status(self, params: ToggleCustomerStatusParams, idempotency_key: str | None = None) -> ToggleCustomerStatusResponse:
         """
         Toggles the active status of a customer account (disable or enable).
         :param params: Parameters containing the customer ID.
@@ -241,8 +242,8 @@ class KeyMint:
         :param tolerance_seconds: Time tolerance in seconds to prevent replay attacks. Defaults to 300 (5 minutes).
         :returns: True if the signature is valid, False otherwise.
         """
-        import hmac
         import hashlib
+        import hmac
         import time
 
         if not header or not secret:
@@ -275,7 +276,7 @@ class KeyMint:
                 return False
 
             # Verify HMAC signature
-            signable_content = f"{timestamp_str}.{payload}".encode("utf-8")
+            signable_content = f"{timestamp_str}.{payload}".encode()
             expected_signature = hmac.new(
                 secret.encode("utf-8"),
                 signable_content,
