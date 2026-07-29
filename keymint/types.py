@@ -4,6 +4,15 @@ class NewCustomer(TypedDict):
     name: str
     email: Optional[str]
 
+class KeyFormat(TypedDict):
+    sections: Optional[int]
+    sectionLength: Optional[int]
+    separator: Optional[str]
+    charset: Optional[str]
+    prefix: Optional[str]
+    suffix: Optional[str]
+    case: Optional[str]  # 'upper' | 'lower' | 'mixed'
+
 class CreateKeyParams(TypedDict):
     productId: str
     maxActivations: Optional[str]
@@ -13,6 +22,12 @@ class CreateKeyParams(TypedDict):
     metadata: Optional[Dict[str, Any]]
     newCustomer: Optional[NewCustomer]
     allowedHosts: Optional[List[str]]
+    format: Optional[KeyFormat]
+    amountKeys: Optional[str]
+    licenseType: Optional[str]  # 'node-locked' | 'floating'
+    maxConcurrentSessions: Optional[int]
+    heartbeatInterval: Optional[int]
+    sessionLeaseDuration: Optional[int]
 
 class CreateKeyResponse(TypedDict):
     code: int
@@ -30,6 +45,8 @@ class ActivateKeyParams(TypedDict):
     licenseKey: str
     hostId: Optional[str]
     deviceTag: Optional[str]
+    licensee: Optional[Dict[str, str]]  # { name, email }
+    version: Optional[str]
 
 class ActivateKeyResponse(TypedDict):
     code: int
@@ -104,7 +121,7 @@ class UnblockKeyResponse(TypedDict):
 
 class CreateCustomerParams(TypedDict):
     name: str
-    email: str
+    email: Optional[str]
 
 class CreateCustomerResponse(TypedDict):
     action: str
@@ -141,9 +158,9 @@ class GetCustomerByIdResponse(TypedDict):
     code: int
 
 class UpdateCustomerParams(TypedDict):
-    name: str
-    email: str
     customerId: str
+    name: Optional[str]  # Optional: Updated customer name
+    email: Optional[str] # Optional: Updated customer email
 
 class UpdateCustomerResponse(TypedDict):
     action: str
@@ -182,11 +199,8 @@ class CustomerLicenseKey(TypedDict):
 class GetCustomerWithKeysParams(TypedDict):
     customerId: str
 
-class GetCustomerWithKeysResponse(TypedDict):
-    action: str
-    status: bool
-    data: Dict[str, Any]  # Contains customer and licenseKeys
-    code: int
+# GetCustomerWithKeys returns a flat LicenseKey[] — no wrapper object.
+# Use List[Dict[str, Any]] for the response type.
 
 class FloatingCheckoutParams(TypedDict):
     productId: str
@@ -235,3 +249,33 @@ class FloatingCheckinParams(TypedDict):
 class FloatingCheckinResponse(TypedDict):
     code: int
     message: str
+
+class UpdateKeyParams(TypedDict):
+    productId: str
+    licenseKey: str
+    maxActivations: Optional[Any]   # string or number
+    expiryDate: Optional[str]
+    customerId: Optional[str]
+    newCustomer: Optional[NewCustomer]
+    metadata: Optional[Dict[str, Any]]
+    versionId: Optional[str]
+    allowedHosts: Optional[List[str]]
+    licenseType: Optional[str]  # 'node-locked' | 'floating'
+    maxConcurrentSessions: Optional[int]
+    heartbeatInterval: Optional[int]
+    sessionLeaseDuration: Optional[int]
+
+class UpdateKeyResponse(TypedDict):
+    code: int
+    message: str
+    affectedCount: Optional[int]
+
+class SignKeyParams(TypedDict):
+    productId: str
+    licenseKey: str
+    hostId: str
+    ttl: Optional[int]
+
+class SignKeyResponse(TypedDict):
+    code: int
+    file: Dict[str, Any]  # { signedKey, keyId, publicKeyFingerprint }

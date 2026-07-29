@@ -26,9 +26,11 @@ class KeyMint:
             if method.upper() == 'GET':
                 response = requests.get(url, params=query_params, headers=headers)
             elif method.upper() == 'POST':
-                response = requests.post(url, json=params, headers=headers)
+                response = requests.post(url, json=params, params=query_params, headers=headers)
             elif method.upper() == 'PUT':
-                response = requests.put(url, json=params, headers=headers)
+                response = requests.put(url, json=params, params=query_params, headers=headers)
+            elif method.upper() == 'PATCH':
+                response = requests.patch(url, json=params, params=query_params, headers=headers)
             elif method.upper() == 'DELETE':
                 response = requests.delete(url, params=query_params, headers=headers)
             else:
@@ -143,6 +145,26 @@ class KeyMint:
         """
         return self._handle_request('POST', '/key/unblock', params, idempotency_key=idempotency_key)
 
+    def update_key(self, params: 'UpdateKeyParams', idempotency_key: str = None) -> 'UpdateKeyResponse':
+        """
+        Updates an existing license key.
+        Requires productId and licenseKey. All other fields are optional.
+        :param params: Parameters for updating the key.
+        :param idempotency_key: Optional unique identifier to ensure request idempotency.
+        :returns: The update confirmation.
+        """
+        return self._handle_request('PATCH', '/key', params, idempotency_key=idempotency_key)
+
+    def sign_key(self, params: 'SignKeyParams', idempotency_key: str = None) -> 'SignKeyResponse':
+        """
+        Signs a license key for offline (air-gapped) validation.
+        Requires admin API key scope and Standard plan.
+        :param params: Signing parameters (hostId is required).
+        :param idempotency_key: Optional unique identifier to ensure request idempotency.
+        :returns: The signed license file.
+        """
+        return self._handle_request('POST', '/key/sign', params, idempotency_key=idempotency_key)
+
     # Customer Management Methods
     
     def create_customer(self, params: CreateCustomerParams, idempotency_key: str = None) -> CreateCustomerResponse:
@@ -190,11 +212,11 @@ class KeyMint:
         query_params = {'customerId': params['customerId']}
         return self._handle_request('DELETE', '/customer/by-id', query_params=query_params, idempotency_key=idempotency_key)
 
-    def get_customer_with_keys(self, params: GetCustomerWithKeysParams) -> GetCustomerWithKeysResponse:
+    def get_customer_with_keys(self, params: GetCustomerWithKeysParams) -> List[Dict[str, Any]]:
         """
-        Retrieves detailed information about a customer along with their license keys.
+        Retrieves license keys belonging to a specific customer.
         :param params: Parameters containing the customer ID.
-        :returns: The customer information with associated license keys.
+        :returns: A flat list of license key objects.
         """
         query_params = {'customerId': params['customerId']}
         return self._handle_request('GET', '/customer/keys', query_params=query_params)
