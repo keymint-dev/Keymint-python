@@ -38,7 +38,7 @@ setup(
     keywords="license-key validation activation node-lock hardware-id copy-protection product-key drm offline-licensing keymint license licensing api",
     python_requires='>=3.6',
     install_requires=[
-        'requests>=2.25.0',
+        'requests>=2.32.4',
     ],
     extras_require={
         'dev': [
