@@ -30,9 +30,10 @@ class CreateKeyParams(TypedDict):
     heartbeatInterval: int | None
     sessionLeaseDuration: int | None
 
-class CreateKeyResponse(TypedDict):
+class CreateKeyResponse(TypedDict, total=False):
     code: int
     key: str
+    keys: list[str]
 
 class KeyMintApiError(Exception):
     def __init__(self, message: str, code: int, status: int | None = None):
@@ -67,6 +68,7 @@ class DeactivateKeyParams(TypedDict):
 class DeactivateKeyResponse(TypedDict):
     message: str
     code: int
+    devicesRemoved: int
 
 class DeviceDetails(TypedDict):
     hostId: str
@@ -179,11 +181,13 @@ class DeleteCustomerResponse(TypedDict):
 class ToggleCustomerStatusParams(TypedDict):
     customerId: str
 
-class ToggleCustomerStatusResponse(TypedDict):
+class ToggleCustomerStatusResponse(TypedDict, total=False):
     action: str
     status: bool
     message: str
     code: int
+    customerName: str
+    active: bool
 
 class CustomerLicenseKey(TypedDict):
     id: str
@@ -210,6 +214,8 @@ class FloatingCheckoutParams(TypedDict):
     deviceTag: str | None
     userIdentifier: str | None
     apiKey: str | None
+    timestamp: Any | None
+    signature: str | None
 
 class FloatingCheckoutResponse(TypedDict):
     code: int
@@ -278,5 +284,4 @@ class SignKeyParams(TypedDict):
     ttl: int | None
 
 class SignKeyResponse(TypedDict):
-    code: int
-    file: dict[str, Any]  # { signedKey, keyId, publicKeyFingerprint }
+    file: str  # Serialized signed license file returned by the API
