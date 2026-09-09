@@ -61,7 +61,7 @@ Keymint provides utilities to uniquely identify machines for node-locking:
 | `update_key`     | Updates an existing license key.                |
 | `block_key`      | Blocks a license key.                           |
 | `unblock_key`    | Unblocks a previously blocked license key.      |
-| `sign_key`       | Signs a key for offline (air-gapped) validation.|
+| `sign_key`       | Signs a key for offline validation using an admin API key.|
 | `floating_checkout` | Checks out a floating license seat.          |
 | `floating_heartbeat`| Sends a heartbeat to keep a session alive.   |
 | `floating_checkin`  | Checks in a session, releasing the seat.     |

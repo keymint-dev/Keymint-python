@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="keymint",
-    version="2.4.0",
+    version="2.5.0",
     author="KeyMint",
     author_email="cliff@keymint.dev",
     description="License key validation, activation, and management for Python. Supports node-locking, offline licensing, and hardware fingerprinting.",
@@ -26,17 +26,13 @@ setup(
         "Topic :: System :: Software Distribution",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Operating System :: OS Independent",
     ],
     keywords="license-key validation activation node-lock hardware-id copy-protection product-key drm offline-licensing keymint license licensing api",
-    python_requires='>=3.6',
+    python_requires='>=3.10',
     install_requires=[
         'requests>=2.32.4',
     ],

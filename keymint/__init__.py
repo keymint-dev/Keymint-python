@@ -17,11 +17,13 @@ class KeyMint:
             'Content-Type': 'application/json'
         }
 
-    def _handle_request(self, method: str, endpoint: str, params: dict | None = None, query_params: dict | None = None, idempotency_key: str | None = None):
+    def _handle_request(self, method: str, endpoint: str, params: dict | None = None, query_params: dict | None = None, idempotency_key: str | None = None, extra_headers: dict | None = None):
         url = f'{self.base_url}{endpoint}'
         headers = self.headers.copy()
         if idempotency_key:
             headers['Idempotency-Key'] = idempotency_key
+        if extra_headers:
+            headers.update(extra_headers)
             
         try:
             if method.upper() == 'GET':
@@ -42,8 +44,9 @@ class KeyMint:
         except requests.exceptions.HTTPError as http_err:
             try:
                 error_data = http_err.response.json()
+                nested_error = error_data.get('error') if isinstance(error_data.get('error'), dict) else {}
                 raise KeyMintApiError(
-                    message=error_data.get('message', 'An API error occurred'),
+                    message=error_data.get('message') or nested_error.get('message') or 'An API error occurred',
                     code=error_data.get('code', -1),
                     status=http_err.response.status_code
                 )
@@ -123,10 +126,12 @@ class KeyMint:
         :returns: The license key details.
         """
         query_params = {
-            'productId': params['productId'],
-            'licenseKey': params['licenseKey']
+            'productId': params['productId']
         }
-        return self._handle_request('GET', '/key', query_params=query_params)
+        return self._handle_request(
+            'GET', '/key', query_params=query_params,
+            extra_headers={'x-license-key': params['licenseKey']}
+        )
 
     def block_key(self, params: BlockKeyParams, idempotency_key: str | None = None) -> BlockKeyResponse:
         """
@@ -287,5 +292,4 @@ class KeyMint:
             return hmac.compare_digest(expected_signature, signature)
         except Exception:
             return False
-
 
