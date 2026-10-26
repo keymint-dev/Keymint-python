@@ -35,6 +35,7 @@ setup(
     python_requires='>=3.10',
     install_requires=[
         'requests>=2.32.4',
+        'cryptography>=41',
     ],
     extras_require={
         'dev': [
