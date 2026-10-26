@@ -31,7 +31,8 @@ class KeyMint:
             'Content-Type': 'application/json'
         }
 
-    def _handle_request(self, method: str, endpoint: str, params: dict | None = None, query_params: dict | None = None, idempotency_key: str | None = None, extra_headers: dict | None = None):
+    def _handle_request(self, method: str, endpoint: str, params: dict | None = None, query_params: dict | None = None, idempotency_key: str | None = None, extra_headers: dict | None = None, delete_body: dict | None = None):
+        # DELETE sends a JSON body only when delete_body is given (delete_key).
         url = f'{self.base_url}{endpoint}'
         headers = self.headers.copy()
         if idempotency_key:
@@ -49,7 +50,10 @@ class KeyMint:
             elif method.upper() == 'PATCH':
                 response = requests.patch(url, json=params, params=query_params, headers=headers)
             elif method.upper() == 'DELETE':
-                response = requests.delete(url, params=query_params, headers=headers)
+                if delete_body is not None:
+                    response = requests.delete(url, json=delete_body, params=query_params, headers=headers)
+                else:
+                    response = requests.delete(url, params=query_params, headers=headers)
             else:
                 raise ValueError(f"Unsupported HTTP method: {method}")
             
@@ -170,6 +174,16 @@ class KeyMint:
         """
         return self._handle_request('POST', '/key/unblock', params, idempotency_key=idempotency_key)
 
+    def delete_key(self, params: DeleteKeyParams, idempotency_key: str | None = None) -> DeleteKeyResponse:
+        """
+        Permanently deletes a license key. Use block_key to stop a key reversibly.
+        :param params: Parameters for deleting the key.
+        :param idempotency_key: Optional unique identifier to ensure request idempotency.
+        :returns: The deletion confirmation.
+        """
+        body = {'productId': params['productId'], 'licenseKey': params['licenseKey']}
+        return self._handle_request('DELETE', '/key', idempotency_key=idempotency_key, delete_body=body)
+
     def update_key(self, params: 'UpdateKeyParams', idempotency_key: str | None = None) -> 'UpdateKeyResponse':
         """
         Updates an existing license key.
@@ -229,7 +243,7 @@ class KeyMint:
 
     def delete_customer(self, params: DeleteCustomerParams, idempotency_key: str | None = None) -> DeleteCustomerResponse:
         """
-        Permanently deletes a customer and all associated license keys.
+        Deletes a customer. Their license keys are kept; use delete_key to remove them.
         :param params: Parameters containing the customer ID.
         :param idempotency_key: Optional unique identifier to ensure request idempotency.
         :returns: The deletion confirmation.

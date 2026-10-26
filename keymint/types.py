@@ -123,6 +123,14 @@ class UnblockKeyResponse(TypedDict):
     message: str
     code: int
 
+class DeleteKeyParams(TypedDict):
+    productId: str
+    licenseKey: str
+
+class DeleteKeyResponse(TypedDict):
+    message: str
+    code: int
+
 # Customer Management Types
 
 class CreateCustomerParams(TypedDict):

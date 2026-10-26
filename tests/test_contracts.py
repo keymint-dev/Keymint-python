@@ -83,3 +83,44 @@ def test_floating_checkout_returns_expiration_date_separate_from_lease(mock_post
     assert mock_post.call_args.args[0].endswith("/key/checkout")
     assert result["expirationDate"] == expiration_date
     assert result["expiresAt"] == "2026-10-26T12:05:00.000Z"
+
+
+@patch("keymint.requests.delete")
+def test_delete_key_sends_json_body_not_url(mock_delete):
+    mock_delete.return_value = response({"message": "Key deleted", "code": 0})
+
+    result = KeyMint("admin_test").delete_key({"productId": "product_123", "licenseKey": "secret/license+key"})
+
+    args, kwargs = mock_delete.call_args
+    url = args[0]
+    assert url == "https://api.keymint.dev/key"
+    assert kwargs["json"] == {"productId": "product_123", "licenseKey": "secret/license+key"}
+    assert kwargs["params"] is None
+    assert "secret" not in url and "license" not in url
+    assert "x-license-key" not in kwargs["headers"]
+    assert kwargs["headers"]["Authorization"] == "Bearer admin_test"
+    assert kwargs["headers"]["Content-Type"] == "application/json"
+    assert result == {"message": "Key deleted", "code": 0}
+
+
+@patch("keymint.requests.delete")
+def test_delete_key_raises_on_404(mock_delete):
+    mock_delete.return_value = response({"message": "Invalid license key", "code": 1}, 404)
+
+    with pytest.raises(KeyMintApiError, match="Invalid license key") as excinfo:
+        KeyMint("admin_test").delete_key({"productId": "product_123", "licenseKey": "license_123"})
+
+    assert excinfo.value.status == 404
+    assert excinfo.value.code == 1
+
+
+@patch("keymint.requests.delete")
+def test_delete_customer_still_uses_query_params_and_no_body(mock_delete):
+    mock_delete.return_value = response({"action": "deleteCustomer", "status": True, "code": 0})
+
+    KeyMint("admin_test").delete_customer({"customerId": "cust_123"})
+
+    args, kwargs = mock_delete.call_args
+    assert args[0] == "https://api.keymint.dev/customer/by-id"
+    assert kwargs["params"] == {"customerId": "cust_123"}
+    assert set(kwargs) == {"params", "headers"}

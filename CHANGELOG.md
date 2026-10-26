@@ -6,6 +6,7 @@
 - `product_id` is required: one signing key covers every product in an organization, so a verifier that skips the product check would let a license for one product unlock another.
 - New required dependency: `cryptography>=41`, for Ed25519.
 - CI now runs every test under `tests/`, including the shared offline-license test vectors.
+- Add `delete_key` (`DELETE /key`), which permanently deletes a license key. Use `block_key` to stop a key reversibly.
 
 ## 2.6.0 - 2026-10-26
 
