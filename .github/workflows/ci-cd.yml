@@ -31,8 +31,8 @@ jobs:
       - name: Verify Package Build
         run: python -m build
 
-      - name: Run Contract Tests
-        run: pytest -q tests/test_contracts.py
+      - name: Run Tests
+        run: pytest -q tests
 
   publish:
     name: Publish to PyPI

@@ -1,9 +1,23 @@
 import requests
 
 from ._version import __version__
+from .offline import (
+    OfflineLicense,
+    OfflineLicenseError,
+    OfflineLicenseErrorCode,
+    verify_offline_license,
+)
 from .types import *
 
-__all__ = ['KeyMint', 'KeyMintApiError', '__version__']
+__all__ = [
+    'KeyMint',
+    'KeyMintApiError',
+    'OfflineLicense',
+    'OfflineLicenseError',
+    'OfflineLicenseErrorCode',
+    '__version__',
+    'verify_offline_license',
+]
 
 class KeyMint:
     def __init__(self, api_key: str, base_url: str = "https://api.keymint.dev"):

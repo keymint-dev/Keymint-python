@@ -6,6 +6,7 @@ A professional, production-ready SDK for integrating with the Keymint API in Pyt
 - **Type hints**: Full type hint support for better IDE integration and code safety.
 - **Comprehensive**: Complete API coverage for all Keymint endpoints.
 - **Consistent error handling**: All API errors are returned as structured objects or exceptions.
+- **Offline licenses**: Verify signed `.lic` files locally with `verify_offline_license`.
 - **Machine Identity**: Built-in utilities for hardware fingerprinting and stable installation IDs.
 
 ## Installation
@@ -65,6 +66,81 @@ else:
 ```
 
 Store the last `expirationDate` you received. An expired license fails activation with the same generic invalid-key error as a wrong key, so the stored date is how your app can tell the user the license expired on that date instead of calling the key invalid.
+
+## Offline Licenses
+
+An offline license is a `.lic` file holding a token signed with your organization's Ed25519 key. Your app verifies it locally with `verify_offline_license`, with no network call.
+
+1. **Get the `.lic` file** from the dashboard's Offline License dialog, or with `sign_key` from your own backend (it needs an admin API key, so never call it from the shipped app). The `hostId` you sign for becomes the license's machine code, so use the ID the customer's machine reports, e.g. `identity.get_or_create_installation_id()`.
+
+   ```python
+   # On your server, with host_id sent by the customer's machine:
+   result = sdk.sign_key({'productId': product_id, 'licenseKey': license_key, 'hostId': host_id})
+   lic = result['file']  # the .lic contents; deliver this to the customer
+   ```
+
+2. **Bundle your public key** with the app: copy the PEM from **Developer → Public Keys** in the dashboard. It is a public key, so shipping it is safe.
+
+3. **Verify** with the product ID and this machine's code:
+
+   ```python
+   from keymint import OfflineLicenseError, identity, verify_offline_license
+
+   PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----
+   MCowBQYDK2VwAyEA...
+   -----END PUBLIC KEY-----
+   """
+
+   with open('license.lic', encoding='utf-8') as f:
+       lic = f.read()
+
+   try:
+       offline = verify_offline_license(
+           lic,
+           public_keys=[PUBLIC_KEY],
+           product_id='prod_...',  # this app's product ID
+           machine_code=identity.get_or_create_installation_id(),
+       )
+       print(f'Licensed until {offline.expires_at:%Y-%m-%d}')
+   except OfflineLicenseError as err:
+       if err.code == 'expired':
+           ...  # ask the customer to renew or reconnect
+       elif err.code in ('wrong_product', 'wrong_machine'):
+           ...  # a real license, but not for this product or this machine
+       else:
+           ...  # malformed, unsupported_algorithm, unknown_key, bad_signature, wrong_type: not a valid license
+   ```
+
+`verify_offline_license` accepts the `.lic` file contents or the bare token and returns an `OfflineLicense` with `license_key`, `product_id`, `machine_code`, `key_id`, `issued_at` (or `None`) and `expires_at` (timezone-aware UTC datetimes). On failure it raises `OfflineLicenseError`; `err.code` is one of:
+
+| Code | Meaning |
+|---|---|
+| `malformed` | Not a license file or token, or required claims (`exp`, `sub`) are missing or invalid. |
+| `unsupported_algorithm` | The token is not signed with EdDSA (e.g. `none`, `HS256`). |
+| `unknown_key` | Signed by a key that isn't in `public_keys`. |
+| `bad_signature` | The signature doesn't match: the file was altered or forged. |
+| `wrong_type` | The token is not an offline license. |
+| `wrong_product` | The license is for a different product. |
+| `wrong_machine` | The license is for a different machine. |
+| `expired` | Past its expiry, plus `clock_skew` (default 60 seconds, max 3600). |
+
+Bad arguments (no public keys, a PEM that isn't an Ed25519 public key, an empty `product_id` or `machine_code`, `clock_skew` outside 0..3600, a naive `now`) raise `ValueError` or `TypeError`, not `OfflineLicenseError`.
+
+**`product_id` is required.** One signing key covers all of an organization's products, so without the product check a license for a cheap product would unlock an expensive one.
+
+**Clock rollback.** The SDK can't tell if the system clock was set back. To guard against it, store the latest time you have trusted (for example, after each successful run) and pass the later of the two as `now`. `now` must be timezone-aware:
+
+```python
+from datetime import datetime, timezone
+
+now = max(datetime.now(timezone.utc), last_trusted_time)
+offline = verify_offline_license(lic, public_keys=[PUBLIC_KEY], product_id=product_id,
+                                 machine_code=machine_code, now=now)
+```
+
+`public_keys` accepts several keys, so apps are ready for key rotation. An offline license stays valid until it expires; it can't be revoked before then.
+
+Offline verification uses the [`cryptography`](https://pypi.org/project/cryptography/) package, which `pip install keymint` installs (`cryptography>=41`).
 
 ## Machine Identity
 Keymint provides utilities to uniquely identify machines for node-locking:
