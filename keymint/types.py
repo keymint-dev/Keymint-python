@@ -59,6 +59,9 @@ class ActivateKeyResponse(TypedDict):
     versionId: str | None
     version: dict[str, Any] | None
     allowedHosts: list[str] | None
+    # License expiry as an ISO 8601 string (e.g. "2027-03-01T00:00:00.000Z"),
+    # or None when the license never expires.
+    expirationDate: str | None
 
 class DeactivateKeyParams(TypedDict):
     productId: str
@@ -223,9 +226,12 @@ class FloatingCheckoutResponse(TypedDict):
     sessionId: str
     sessionSecret: str
     nextNonce: str
-    expiresAt: str
+    expiresAt: str  # Floating seat lease expiry (not the license expiry)
     heartbeatInterval: int
     metadata: dict[str, Any] | None
+    # License expiry as an ISO 8601 string, or None when the license never
+    # expires. Separate from ``expiresAt``, which is the seat lease.
+    expirationDate: str | None
     currentSessions: int | None
     maxSessions: int | None
     licenseeName: str | None
