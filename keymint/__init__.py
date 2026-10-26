@@ -243,7 +243,7 @@ class KeyMint:
 
     def delete_customer(self, params: DeleteCustomerParams, idempotency_key: str | None = None) -> DeleteCustomerResponse:
         """
-        Permanently deletes a customer and all associated license keys.
+        Deletes a customer. Their license keys are kept; use delete_key to remove them.
         :param params: Parameters containing the customer ID.
         :param idempotency_key: Optional unique identifier to ensure request idempotency.
         :returns: The deletion confirmation.
