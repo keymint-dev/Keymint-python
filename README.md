@@ -42,6 +42,30 @@ if result and 'key' in result:
     print(f"Created Key: {result['key']}")
 ```
 
+## License Expiry
+
+`activate_key` and `floating_checkout` return `expirationDate`: the license expiry as an ISO 8601 string (e.g. `"2027-03-01T00:00:00.000Z"`), or `None` when the license never expires. On `floating_checkout`, `expiresAt` is the seat lease, not the license expiry.
+
+```python
+from datetime import datetime, timezone
+import math
+
+result = sdk.activate_key({'productId': product_id, 'licenseKey': license_key, 'hostId': host_id})
+
+expiration = result.get('expirationDate')
+if expiration is None:
+    print('License never expires')
+else:
+    expires_at = datetime.fromisoformat(expiration.replace('Z', '+00:00'))
+    seconds_left = (expires_at - datetime.now(timezone.utc)).total_seconds()
+    days_left = max(0, math.ceil(seconds_left / 86400))
+    print(f'License expires {expires_at:%Y-%m-%d} ({days_left} days left)')
+
+# Store the last value you received (e.g. in your app's settings file).
+```
+
+Store the last `expirationDate` you received. An expired license fails activation with the same generic invalid-key error as a wrong key, so the stored date is how your app can tell the user the license expired on that date instead of calling the key invalid.
+
 ## Machine Identity
 Keymint provides utilities to uniquely identify machines for node-locking:
 

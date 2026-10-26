@@ -79,7 +79,10 @@ class KeyMint:
         
         :param params: Activation parameters including productId, licenseKey, and optional hostId.
         :param idempotency_key: Optional unique identifier to ensure request idempotency.
-        :return: Activation success message and licensee information.
+        :return: Activation success message and licensee information. Includes
+            ``expirationDate``: the license expiry as an ISO 8601 string, or ``None``
+            when the license never expires. An expired license fails activation with
+            the same generic invalid-key error, so store the last value you received.
         """
         return self._handle_request('POST', '/key/activate', params, idempotency_key=idempotency_key)
 
@@ -98,6 +101,8 @@ class KeyMint:
         :param params: Parameters for checking out the license.
         :param idempotency_key: Optional unique identifier to ensure request idempotency.
         :returns: The checkout response containing sessionId and sessionSecret.
+            ``expiresAt`` is the seat lease; ``expirationDate`` is the license expiry
+            as an ISO 8601 string, or ``None`` when the license never expires.
         """
         return self._handle_request('POST', '/key/checkout', params, idempotency_key=idempotency_key)
 
