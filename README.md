@@ -195,6 +195,8 @@ result = sdk.create_key({
 }, idempotency_key='9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d')
 ```
 
+Use a fresh random UUID for each operation and reuse it only to retry that same operation. Never derive it from the license key or host ID: a replay returns the original response, including floating-session secrets.
+
 ## License
 MIT
 
