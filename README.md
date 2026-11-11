@@ -185,9 +185,40 @@ Keymint provides utilities to uniquely identify machines for node-locking:
 |-------------------------|--------------------------------------------------|
 | `verify_webhook_signature`| Verifies the signature of a webhook request payload. |
 
+## Error Handling
+
+Every failed call raises `KeyMintApiError` with:
+
+| Attribute | Meaning |
+|---|---|
+| `error_code` | Stable catalogue string from the response's `errorCode`, e.g. `api_key_invalid`, `license_not_found`, `activation_limit_reached`, `product_not_found`, `invalid_request`, `payload_too_large`, `rate_limited`, `session_invalid`, `session_expired`. `None` when the response has none (for example a non-JSON body from a proxy, or a network error). |
+| `status` | HTTP status, or `None` when no response was received. |
+| `code` | Numeric `code` from the response body, or `-1`. |
+| `message` | Human-readable message. It can change, so don't branch on it. |
+
+Branch on `error_code`, falling back to `status`:
+
+```python
+from keymint import KeyMintApiError
+
+try:
+    sdk.activate_key({'productId': product_id, 'licenseKey': license_key, 'hostId': host_id})
+except KeyMintApiError as err:
+    if err.error_code == 'activation_limit_reached':
+        ...  # ask the customer to deactivate another device
+    elif err.error_code == 'license_not_found':
+        ...  # wrong or expired key (see License Expiry)
+    elif err.error_code == 'rate_limited' or err.status == 429:
+        ...  # back off and retry later
+    elif err.status is None or err.status >= 500:
+        ...  # network or server problem: retry, or fall back to a cached result
+    else:
+        raise
+```
+
 ## Idempotency
 
-All mutating SDK methods support idempotency keys to safely retry requests in case of network drops. Pass a unique string (recommended: UUID v4) as the optional `idempotency_key` keyword argument:
+Mutating SDK methods support idempotency keys to safely retry requests in case of network drops. Pass a unique string (recommended: UUID v4) as the optional `idempotency_key` keyword argument:
 
 ```python
 result = sdk.create_key({ 
@@ -195,7 +226,9 @@ result = sdk.create_key({
 }, idempotency_key='9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d')
 ```
 
-Use a fresh random UUID for each operation and reuse it only to retry that same operation. Never derive it from the license key or host ID: a replay returns the original response, including floating-session secrets.
+Use a fresh random UUID for each operation and reuse it only to retry that same operation. Never derive it from the license key or host ID: a replay returns the original response.
+
+The floating-license methods (`floating_checkout`, `floating_heartbeat`, `floating_checkin`) accept `idempotency_key` for compatibility, but the server ignores `Idempotency-Key` on those endpoints: every call is processed and none is replayed.
 
 ## License
 MIT

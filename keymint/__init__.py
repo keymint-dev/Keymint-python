@@ -62,18 +62,23 @@ class KeyMint:
         except requests.exceptions.HTTPError as http_err:
             try:
                 error_data = http_err.response.json()
-                nested_error = error_data.get('error') if isinstance(error_data.get('error'), dict) else {}
-                raise KeyMintApiError(
-                    message=error_data.get('message') or nested_error.get('message') or 'An API error occurred',
-                    code=error_data.get('code', -1),
-                    status=http_err.response.status_code
-                )
             except ValueError:
+                # Not JSON (e.g. an HTML page from a proxy).
                 raise KeyMintApiError(
                     message=str(http_err),
                     code=-1,
                     status=http_err.response.status_code
                 )
+            if not isinstance(error_data, dict):
+                error_data = {}
+            nested_error = error_data.get('error') if isinstance(error_data.get('error'), dict) else {}
+            error_code = error_data.get('errorCode')
+            raise KeyMintApiError(
+                message=error_data.get('message') or nested_error.get('message') or 'An API error occurred',
+                code=error_data.get('code', -1),
+                status=http_err.response.status_code,
+                error_code=error_code if isinstance(error_code, str) else None,
+            )
         except Exception as err:
             raise KeyMintApiError(message=str(err), code=-1)
 
@@ -117,7 +122,8 @@ class KeyMint:
         """
         Checks out a floating license seat.
         :param params: Parameters for checking out the license.
-        :param idempotency_key: Optional unique identifier to ensure request idempotency.
+        :param idempotency_key: Accepted for compatibility; the server ignores
+            ``Idempotency-Key`` on floating endpoints and never replays them.
         :returns: The checkout response containing sessionId and sessionSecret.
             ``expiresAt`` is the seat lease; ``expirationDate`` is the license expiry
             as an ISO 8601 string, or ``None`` when the license never expires.
@@ -128,7 +134,8 @@ class KeyMint:
         """
         Sends a heartbeat to keep a floating license session alive.
         :param params: Parameters for the heartbeat (includes rotating signature).
-        :param idempotency_key: Optional unique identifier to ensure request idempotency.
+        :param idempotency_key: Accepted for compatibility; the server ignores
+            ``Idempotency-Key`` on floating endpoints and never replays them.
         :returns: The heartbeat response with extended expiry and new nonce.
         """
         return self._handle_request('POST', '/key/heartbeat', params, idempotency_key=idempotency_key)
@@ -137,7 +144,8 @@ class KeyMint:
         """
         Checks in a floating license session, releasing the seat.
         :param params: Parameters for checking in the license (includes rotating signature).
-        :param idempotency_key: Optional unique identifier to ensure request idempotency.
+        :param idempotency_key: Accepted for compatibility; the server ignores
+            ``Idempotency-Key`` on floating endpoints and never replays them.
         :returns: The checkin confirmation.
         """
         return self._handle_request('POST', '/key/checkin', params, idempotency_key=idempotency_key)
