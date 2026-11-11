@@ -124,3 +124,83 @@ def test_delete_customer_still_uses_query_params_and_no_body(mock_delete):
     assert args[0] == "https://api.keymint.dev/customer/by-id"
     assert kwargs["params"] == {"customerId": "cust_123"}
     assert set(kwargs) == {"params", "headers"}
+
+
+@patch("keymint.requests.post")
+def test_error_exposes_error_code(mock_post):
+    mock_post.return_value = response({
+        "message": "Activation limit reached", "code": 2, "errorCode": "activation_limit_reached",
+    }, 403)
+
+    with pytest.raises(KeyMintApiError, match="Activation limit reached") as excinfo:
+        KeyMint("client_test").activate_key({"productId": "product_123", "licenseKey": "license_123"})
+
+    assert excinfo.value.error_code == "activation_limit_reached"
+    assert excinfo.value.code == 2
+    assert excinfo.value.status == 403
+    assert str(excinfo.value) == "Activation limit reached"
+
+
+@patch("keymint.requests.post")
+def test_error_with_legacy_envelope_and_error_code(mock_post):
+    mock_post.return_value = response({
+        "success": False,
+        "error": {"code": "CUSTOMER_EMAIL_EXISTS", "message": "Customer email already exists in team"},
+        "code": 1,
+        "errorCode": "invalid_request",
+    }, 409)
+
+    with pytest.raises(KeyMintApiError) as excinfo:
+        KeyMint("admin_test").create_key({"productId": "product_123"})
+
+    assert excinfo.value.error_code == "invalid_request"
+    assert excinfo.value.message == "Customer email already exists in team"
+
+
+@patch("keymint.requests.post")
+def test_error_without_error_code_is_none(mock_post):
+    mock_post.return_value = response({"message": "Invalid license key", "code": 1}, 404)
+
+    with pytest.raises(KeyMintApiError) as excinfo:
+        KeyMint("client_test").activate_key({"productId": "product_123", "licenseKey": "license_123"})
+
+    assert excinfo.value.error_code is None
+    assert excinfo.value.code == 1
+    assert excinfo.value.status == 404
+
+
+@patch("keymint.requests.post")
+def test_error_with_non_json_body(mock_post):
+    result = response(None, 502)
+    result.json.side_effect = requests.exceptions.JSONDecodeError("Expecting value", "<html>", 0)
+    mock_post.return_value = result
+
+    with pytest.raises(KeyMintApiError) as excinfo:
+        KeyMint("client_test").activate_key({"productId": "product_123", "licenseKey": "license_123"})
+
+    assert excinfo.value.error_code is None
+    assert excinfo.value.code == -1
+    assert excinfo.value.status == 502
+
+
+@patch("keymint.requests.post")
+def test_error_with_non_object_json_body(mock_post):
+    mock_post.return_value = response(["unexpected"], 500)
+
+    with pytest.raises(KeyMintApiError) as excinfo:
+        KeyMint("client_test").activate_key({"productId": "product_123", "licenseKey": "license_123"})
+
+    assert excinfo.value.error_code is None
+    assert excinfo.value.status == 500
+
+
+def test_error_constructor_is_backwards_compatible():
+    positional = KeyMintApiError("boom", 3, 429)
+    assert (positional.message, positional.code, positional.status, positional.error_code) == ("boom", 3, 429, None)
+
+    keyword = KeyMintApiError(message="boom", code=-1)
+    assert keyword.status is None and keyword.error_code is None
+
+    full = KeyMintApiError("Too many requests", 3, 429, "rate_limited")
+    assert full.error_code == "rate_limited"
+    assert str(full) == "Too many requests"

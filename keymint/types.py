@@ -36,11 +36,22 @@ class CreateKeyResponse(TypedDict, total=False):
     keys: list[str]
 
 class KeyMintApiError(Exception):
-    def __init__(self, message: str, code: int, status: int | None = None):
+    """An error returned by the Keymint API, or a failure reaching it.
+
+    :ivar message: Human-readable message. Don't branch on it; it can change.
+    :ivar code: Numeric ``code`` from the response body, or -1.
+    :ivar status: HTTP status, or None when no response was received.
+    :ivar error_code: Stable catalogue string from the body's ``errorCode``
+        (e.g. ``'license_not_found'``, ``'activation_limit_reached'``,
+        ``'rate_limited'``), or None when the body has none.
+    """
+
+    def __init__(self, message: str, code: int, status: int | None = None, error_code: str | None = None):
         super().__init__(message)
         self.message = message
         self.code = code
         self.status = status
+        self.error_code = error_code
 
 class ActivateKeyParams(TypedDict):
     productId: str

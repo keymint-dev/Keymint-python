@@ -102,6 +102,7 @@ def main():
         print(f"   Message: {e.message}")
         print(f"   Code: {e.code}")
         print(f"   Status: {e.status}")
+        print(f"   Error code: {e.error_code}")
     except Exception as e:
         print(f"\n❌ Unexpected error: {e}")
 
