@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.8.0 - 2026-11-11
+
+- Add `error_code` to `KeyMintApiError`: the stable string code the API sends with every error (for example `api_key_invalid`, `activation_limit_reached`, `rate_limited`). Branch on it instead of the message. `None` when the response has none. The constructor, `message`, `code`, `status` and `str(err)` are unchanged.
+- A JSON error body that isn't an object now raises `KeyMintApiError` instead of `AttributeError`.
+- Docs: `floating_checkout`, `floating_heartbeat` and `floating_checkin` ignore `Idempotency-Key`, so nothing is replayed for them; README error-handling section added.
+
 ## 2.7.0 - 2026-10-26
 
 - Add `verify_offline_license`, which verifies a signed offline license (the `.lic` file from the dashboard or `sign_key`, or the bare token) locally against your Ed25519 public keys, with no network call. It checks the algorithm, key, signature, license type, product ID, machine code and expiry, returns an `OfflineLicense`, and raises `OfflineLicenseError` with a `code` (`malformed`, `unsupported_algorithm`, `unknown_key`, `bad_signature`, `wrong_type`, `wrong_product`, `wrong_machine`, `expired`) on failure.
