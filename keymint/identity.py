@@ -3,7 +3,7 @@ Machine identity utilities for the Keymint Python SDK.
 
 Provides two methods for identifying machines:
 - get_machine_id(): Best-effort hardware fingerprint (may fail or collide).
-- get_or_create_installation_id(): Guaranteed-stable persistent identity.
+- get_or_create_installation_id(): Persistent identity, stable once saved.
 """
 
 import hashlib
@@ -14,6 +14,7 @@ import re
 import subprocess
 import time
 import uuid
+import warnings
 from pathlib import Path
 from typing import Optional
 
@@ -161,9 +162,46 @@ def get_machine_id() -> str | None:
     return None
 
 
-def get_or_create_installation_id(storage_path: str | None = None) -> str:
+class InstallationIdError(OSError):
+    """The installation ID could not be saved to, or read back from, disk.
+
+    Raised by :func:`get_or_create_installation_id` only when
+    ``require_persisted=True``. Subclasses ``OSError``, so existing
+    ``except OSError`` handlers still catch it.
+
+    :ivar path: The storage path that could not be used.
     """
-    Returns a guaranteed-unique, guaranteed-stable installation identifier.
+
+    def __init__(self, message: str, path: str):
+        super().__init__(message)
+        self.path = path
+
+
+class InstallationIdWarning(RuntimeWarning):
+    """Emitted once per process when an unsaved installation ID is returned."""
+
+
+_unsaved_warning_emitted = False
+
+
+def _warn_unsaved(file_path: Path) -> None:
+    global _unsaved_warning_emitted
+    if _unsaved_warning_emitted:
+        return
+    _unsaved_warning_emitted = True
+    warnings.warn(
+        f'Keymint could not save the installation ID to {file_path}. '
+        'An unsaved ID was returned, so the next launch will get a different ID '
+        'and use another activation slot. Pass a writable storage_path, or '
+        'require_persisted=True to raise instead.',
+        InstallationIdWarning,
+        stacklevel=3,
+    )
+
+
+def get_or_create_installation_id(storage_path: str | None = None, *, require_persisted: bool = False) -> str:
+    """
+    Returns a unique installation identifier that stays stable once saved.
     On first call, generates a UUIDv4 seeded with whatever hardware info
     is available and persists it to disk. Every subsequent call returns the
     same value.
@@ -171,21 +209,41 @@ def get_or_create_installation_id(storage_path: str | None = None) -> str:
     This is the **recommended** value to pass as `host_id` when activating
     a license key.
 
+    If the ID cannot be saved (read-only disk, sandbox, permissions), the
+    default is to return the generated ID anyway and emit one
+    ``InstallationIdWarning`` (a ``RuntimeWarning``) per process. That ID is
+    not saved, so the next launch gets a different one and uses another
+    activation slot. Desktop apps that activate devices should pass
+    ``require_persisted=True``, which raises ``InstallationIdError`` instead.
+
     Args:
         storage_path: Optional custom path for the persistence file.
             Defaults to ~/.keymint/installation-id.
+        require_persisted: If True, raise ``InstallationIdError`` when the ID
+            cannot be saved and read back, or an existing file cannot be read.
+            Defaults to False.
 
     Returns:
         A SHA-256 hashed 64-character hex string.
 
     Raises:
-        OSError: If the file cannot be read or written.
+        InstallationIdError: Only with ``require_persisted=True``, when the
+            ID cannot be saved and read back or the existing file cannot be read.
+        OSError: If an existing file cannot be read (default mode).
     """
     file_path = Path(storage_path) if storage_path else Path.home() / '.keymint' / 'installation-id'
 
     # 1. If the file exists, trust it
     if file_path.exists():
-        stored = file_path.read_text(encoding='utf-8').strip()
+        try:
+            stored = file_path.read_text(encoding='utf-8').strip()
+        except OSError as err:
+            if require_persisted:
+                raise InstallationIdError(
+                    f'Could not read the Keymint installation ID from {file_path}: {err}',
+                    str(file_path),
+                ) from err
+            raise
         if stored:
             return hashlib.sha256(stored.encode('utf-8')).hexdigest()
 
@@ -194,14 +252,22 @@ def get_or_create_installation_id(storage_path: str | None = None) -> str:
     new_uuid = str(uuid.uuid4())
     composite_id = f'{new_uuid}:{hardware_anchor}:{int(time.time() * 1000)}'
 
-    # 3. Persist it
+    # 3. Persist it and read it back
     try:
         file_path.parent.mkdir(parents=True, exist_ok=True)
         file_path.write_text(composite_id, encoding='utf-8')
-    except Exception:
-        pass  # Silently fallback to in-memory ID if filesystem is read-only
+        if file_path.read_text(encoding='utf-8').strip() != composite_id:
+            raise OSError('the saved value did not match when read back')
+    except Exception as err:
+        if require_persisted:
+            raise InstallationIdError(
+                f'Could not save the Keymint installation ID to {file_path}: {err}',
+                str(file_path),
+            ) from err
+        _warn_unsaved(file_path)
 
     return hashlib.sha256(composite_id.encode('utf-8')).hexdigest()
+
 
 def generate_session_signature(session_id: str, nonce: str, session_secret: str) -> str:
     """
