@@ -1,6 +1,7 @@
 import requests
 
 from ._version import __version__
+from .identity import InstallationIdError, InstallationIdWarning
 from .offline import (
     OfflineLicense,
     OfflineLicenseError,
@@ -10,6 +11,8 @@ from .offline import (
 from .types import *
 
 __all__ = [
+    'InstallationIdError',
+    'InstallationIdWarning',
     'KeyMint',
     'KeyMintApiError',
     'OfflineLicense',

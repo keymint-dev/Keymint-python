@@ -148,6 +148,23 @@ Keymint provides utilities to uniquely identify machines for node-locking:
 - `identity.get_or_create_installation_id()`: **Recommended.** Generates a stable UUID anchored to hardware and persists it to `~/.keymint/installation-id`.
 - `identity.get_machine_id()`: Generates a SHA-256 fingerprint based on BIOS UUID, OS machine ID, and MAC address.
 
+### When the installation ID can't be saved
+
+If `get_or_create_installation_id()` can't save the ID (read-only disk, sandbox, permissions), by default it still returns an ID and emits one `InstallationIdWarning` (a `RuntimeWarning`) per process. That ID isn't saved, so the next launch gets a different one and the same machine uses another activation slot.
+
+Desktop apps that activate devices should pass `require_persisted=True`. It raises `InstallationIdError` (a subclass of `OSError`, with the storage path in `err.path`) when the ID can't be saved and read back, or an existing ID file can't be read:
+
+```python
+from keymint import InstallationIdError, identity
+
+try:
+    host_id = identity.get_or_create_installation_id(require_persisted=True)
+except InstallationIdError as err:
+    ...  # tell the user the app can't write to err.path, or pass a writable storage_path
+```
+
+Pass `storage_path=` to keep the ID somewhere else, such as your app's data directory.
+
 ## API Methods
 
 ### License Key Management
