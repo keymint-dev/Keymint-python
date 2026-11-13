@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.9.0 - 2026-11-13
 
 - `identity.get_or_create_installation_id()` no longer fails silently when it can't save the ID. By default it still returns an unsaved ID, and now emits one `InstallationIdWarning` (a `RuntimeWarning`) per process, because the next launch will get a different ID and use another activation slot.
 - Add the keyword `require_persisted=False`. With `True` it raises `InstallationIdError` (a subclass of `OSError`, with `path`) when the ID can't be saved and read back, or an existing file can't be read. Recommended for desktop apps that activate devices.
