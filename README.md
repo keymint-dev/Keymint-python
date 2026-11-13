@@ -251,4 +251,4 @@ The floating-license methods (`floating_checkout`, `floating_heartbeat`, `floati
 MIT
 
 ## Support
-For help, see [Keymint API docs](https://docs.keymint.dev) or open an issue.
+For help, see [Keymint API docs](https://keymint.dev/docs) or open an issue.

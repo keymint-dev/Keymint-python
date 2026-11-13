@@ -15,7 +15,7 @@ setup(
     project_urls={
         "Bug Reports": "https://github.com/keymint-dev/keymint-python/issues",
         "Source": "https://github.com/keymint-dev/keymint-python",
-        "Documentation": "https://docs.keymint.dev/sdks/python",
+        "Documentation": "https://keymint.dev/docs/sdks/python",
         "Homepage": "https://keymint.dev",
     },
     packages=find_packages(),
